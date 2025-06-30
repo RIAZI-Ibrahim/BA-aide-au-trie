@@ -137,17 +137,24 @@ with col1:
     input_adresse = st.text_input("✍️ Entrez l'adresse manuellement :")
 
 with col2:
-    image_uploaded = st.file_uploader(
-        "📷 Prendre une photo / Importer", type=['png', 'jpg', 'jpeg'], label_visibility="collapsed"
+    st.markdown("### 📸 Capture ou Import")
+    uploaded_file = st.file_uploader(
+        "📁 Importer une photo existante", 
+        type=['png', 'jpg', 'jpeg']
     )
+    camera_file = st.camera_input("📷 Prendre une photo maintenant")
 
-if image_uploaded:
-    ocr_result = extraire_texte_image(image_uploaded)
+# OCR automatique si l'un ou l'autre est fourni
+image_to_process = camera_file or uploaded_file
+
+if image_to_process:
+    ocr_result = extraire_texte_image(image_to_process)
     if ocr_result:
         st.success(f"✅ Adresse détectée sur l'étiquette :\n\n> {ocr_result}")
         input_adresse = ocr_result
     else:
         st.error("❌ Impossible de lire l'adresse sur la photo. Veuillez réessayer.")
+
 
 # =========================================
 # AJOUTER L'ADRESSE
