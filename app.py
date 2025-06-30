@@ -160,11 +160,11 @@ with col2:
 image_to_process = photo_capturee if photo_capturee else image_upload
 
 if image_to_process:
-    ocr_result = extraire_texte_image(image_to_process)
-    if ocr_result.strip():
-        st.success(f"✅ Adresse détectée sur l'étiquette :\n\n> {ocr_result}")
-        # On remplace la saisie manuelle si OCR détecte
-        input_adresse = ocr_result
+    ocr_result = extraire_texte_image(image_uploaded)
+    if ocr_result:
+        st.success("✅ Adresse détectée sur l’étiquette :")
+        # Affiche une zone de texte éditable initialisée avec le texte OCR
+        input_adresse = st.text_area("✍️ Corrigez si besoin l'adresse détectée :", value=ocr_result, height=100)
     else:
         st.error("❌ Impossible de lire l'adresse sur la photo. Veuillez réessayer.")
 
