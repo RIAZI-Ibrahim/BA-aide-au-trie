@@ -1,6 +1,5 @@
 streamlit
 pandas
-re
 unicodedata
 PIL
 opencv-python-headless
