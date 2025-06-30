@@ -3,6 +3,8 @@ import pandas as pd
 import unicodedata
 import re
 from PIL import Image
+import numpy as np
+import easyocr
 import pytesseract
 
 # =========================================
@@ -67,13 +69,22 @@ def extraire_nom_rue(adresse):
     adresse_sans_numero = re.sub(r'^\d+\s+', '', adresse)
     return adresse_sans_numero
 
+reader = easyocr.Reader(['fr'], gpu=False)
+
 def extraire_texte_image(image_file):
     try:
+        # Ouvre l'image
         image = Image.open(image_file)
-        text = pytesseract.image_to_string(image, lang='fra')
+        # Convertit en format utilisable par easyocr
+        image = image.convert('RGB')
+        # OCR avec EasyOCR
+        results = reader.readtext(np.array(image), detail=0, paragraph=True)
+        # Concatène tous les résultats
+        text = "\n".join(results)
         return text.strip()
     except Exception as e:
         return ""
+
 
 def chercher_adresse(adresse, tournee_numero):
     nom_rue = extraire_nom_rue(adresse)

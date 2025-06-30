@@ -4,5 +4,6 @@ Pillow
 opencv-python-headless
 numpy
 pytesseract
+easyocr
 
 # autres libs utilisées
