@@ -160,7 +160,7 @@ with col2:
 image_to_process = photo_capturee if photo_capturee else image_upload
 
 if image_to_process:
-    ocr_result = extraire_texte_image(image_uploaded)
+    ocr_result = extraire_texte_image(image_to_process)
     if ocr_result:
         st.success("✅ Adresse détectée sur l’étiquette :")
         # Affiche une zone de texte éditable initialisée avec le texte OCR
