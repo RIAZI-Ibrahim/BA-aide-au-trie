@@ -1,0 +1,246 @@
+
+import pandas as pd
+import sqlite3
+from datetime import datetime, time
+
+import pandas as pd
+import sqlite3
+from datetime import datetime, time
+from collections import Counter
+
+# Configuration des chemins
+EXCEL_FILE = "données.xlsx"  # Remplacez par votre fichier Excel
+DB_FILE = "livraison.db"
+
+def main():
+    conn = None
+    try:
+        # 1. Lecture du fichier Excel
+        df = pd.read_excel(EXCEL_FILE)
+        print("Fichier Excel chargé avec succès")
+        print(f"Nombre initial d'adresses: {len(df)}")
+        print("Colonnes détectées:", df.columns.tolist())
+        
+        # 2. Renommage des colonnes
+        df = df.rename(columns={
+            'Rue destinataire': 'adresse',
+            'CP desti': 'code_postal',
+            'Heure': 'heure_passage',
+            'Tournée livraison': 'tournee'  # Ajout de la colonne tournée
+        })
+        
+        # 3. Filtrer le code postal 33300
+        """df = df[df['code_postal'].astype(str).str.strip() != '33000']
+        print(f"Nombre d'adresses après filtrage du code postal 33300: {len(df)}")"""
+        
+        # 4. Nettoyage des données
+        # Supprimer les adresses vides
+        df = df.dropna(subset=['adresse'])
+        df = df[df['adresse'].astype(str).str.strip() != '']
+        print(f"Nombre d'adresses après suppression des vides: {len(df)}")
+        
+        # 5. Conversion des heures
+        def convert_heure(heure_val):
+            if isinstance(heure_val, time):
+                return heure_val
+            elif isinstance(heure_val, str):
+                try:
+                    return datetime.strptime(heure_val, '%H:%M').time()
+                except:
+                    try:
+                        return datetime.strptime(heure_val, '%H:%M:%S').time()
+                    except:
+                        return None
+            elif pd.isna(heure_val):
+                return None
+            else:
+                try:
+                    # Gestion des nombres Excel (fractions de jour)
+                    return (datetime.min + pd.to_timedelta(heure_val * 24, unit='h')).time()
+                except:
+                    return None
+        
+        df['heure_passage'] = df['heure_passage'].apply(convert_heure)
+        
+        # Supprimer les lignes avec heures invalides
+        df = df.dropna(subset=['heure_passage'])
+        print(f"Nombre d'adresses valides après nettoyage: {len(df)}")
+        
+        # 6. Vérification des données
+        if len(df) == 0:
+            print("Aucune donnée valide après nettoyage. Arrêt du programme.")
+            return
+        
+        # 7. Création de l'ordre de livraison par tournée
+        # Trier d'abord par tournée puis par heure de passage
+        df = df.sort_values(by=['tournee', 'heure_passage'])
+        
+        # Créer l'ordre de livraison pour chaque tournée
+        df['ordre_livraison'] = df.groupby('tournee').cumcount() + 1
+        
+        # 8. Création de la base de données
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        
+        # Création de la table avec la colonne tournée
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS plan_livraison (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tournee TEXT NOT NULL,
+            ordre INTEGER NOT NULL,
+            adresse TEXT NOT NULL,
+            code_postal TEXT NOT NULL,
+            heure_passage TEXT NOT NULL
+        )
+        """)
+        
+        # 9. Insertion des données
+        for _, row in df.iterrows():
+            cursor.execute("""
+            INSERT INTO plan_livraison (tournee, ordre, adresse, code_postal, heure_passage)
+            VALUES (?, ?, ?, ?, ?)
+            """, (
+                str(row['tournee']),  # Convertir en string au cas où
+                row['ordre_livraison'],
+                row['adresse'],
+                str(row['code_postal']),
+                row['heure_passage'].strftime("%H:%M")
+            ))
+        
+        conn.commit()
+        print(f"{len(df)} adresses insérées dans la base de données")
+        
+        # 10. Statistiques par tournée
+        print("\nRécapitulatif des tournées:")
+        tournees = df['tournee'].unique()
+        for t in tournees:
+            count = len(df[df['tournee'] == t])
+            cursor.execute("""
+            SELECT MIN(heure_passage), MAX(heure_passage) 
+            FROM plan_livraison 
+            WHERE tournee = ?
+            """, (str(t),))
+            min_heure, max_heure = cursor.fetchone()
+            print(f"- Tournée '{t}': {count} adresses, de {min_heure} à {max_heure}")
+        
+        print("\nBase de données créée avec succès!")
+        
+    except Exception as e:
+        print(f"ERREUR: {str(e)}")
+        import traceback
+        traceback.print_exc()
+    finally:
+        if conn:
+            conn.close()
+
+def afficher_base_de_donnees(nom_tournee=None):
+    """
+    Affiche le contenu de la base de données, avec possibilité de filtrer par tournée
+    
+    Args:
+        nom_tournee (str/int): Le nom ou identifiant de la tournée à afficher. Si None, affiche toutes les tournées.
+    """
+    # Connexion à la base de données
+    conn = sqlite3.connect("livraison.db")
+    cursor = conn.cursor()
+    
+    # Convertir en string si c'est un nombre
+    if isinstance(nom_tournee, (int, float)):
+        nom_tournee = str(nom_tournee)
+    
+    # Afficher les tables disponibles
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    tables = [t[0] for t in cursor.fetchall()]
+    
+    if 'plan_livraison' not in tables:
+        print("La table 'plan_livraison' n'existe pas dans la base de données.")
+        conn.close()
+        return
+    
+    # Requête en fonction du paramètre tournée
+    if nom_tournee is not None:
+        # Vérifier si la tournée existe
+        cursor.execute("SELECT COUNT(*) FROM plan_livraison WHERE tournee = ?", (nom_tournee,))
+        count = cursor.fetchone()[0]
+        
+        if count == 0:
+            print(f"Aucune donnée trouvée pour la tournée '{nom_tournee}'")
+            # Suggestion de tournées existantes
+            cursor.execute("SELECT DISTINCT tournee FROM plan_livraison")
+            tournees_existantes = [t[0] for t in cursor.fetchall()]
+            print(f"Tournées disponibles: {', '.join(tournees_existantes)}")
+            conn.close()
+            return
+        
+        # Afficher les détails de la tournée spécifique
+        print(f"\n{'='*50}")
+        print(f"TOURNÉE: {nom_tournee}")
+        print(f"{'='*50}")
+        
+        cursor.execute("""
+            SELECT ordre, adresse, code_postal, heure_passage 
+            FROM plan_livraison 
+            WHERE tournee = ?
+            ORDER BY ordre
+        """, (nom_tournee,))
+        
+        # Afficher avec un formatage élégant
+        print(f"{'Ordre':<6} | {'Heure':<8} | {'Adresse':<30} | {'Code Postal'}")
+        print("-"*60)
+        
+        for row in cursor.fetchall():
+            ordre, adresse, cp, heure = row
+            # Tronquer les adresses trop longues
+            adresse_affichage = (adresse[:27] + '...') if len(adresse) > 30 else adresse
+            print(f"{ordre:<6} | {heure:<8} | {adresse_affichage:<30} | {cp}")
+        
+        # Afficher les statistiques de la tournée
+        cursor.execute("""
+            SELECT MIN(heure_passage), MAX(heure_passage), COUNT(*) 
+            FROM plan_livraison 
+            WHERE tournee = ?
+        """, (nom_tournee,))
+        min_heure, max_heure, total = cursor.fetchone()
+        print(f"\nStatistiques: {total} adresses | Début: {min_heure} | Fin: {max_heure}")
+        
+    else:
+        # Afficher toutes les tournées avec un résumé
+        print("\nRÉCAPITULATIF DES TOURNÉES")
+        print("="*50)
+        
+        cursor.execute("""
+            SELECT tournee, COUNT(*) as total, 
+                   MIN(heure_passage) as min_heure, 
+                   MAX(heure_passage) as max_heure
+            FROM plan_livraison
+            GROUP BY tournee
+            ORDER BY tournee
+        """)
+        
+        # Afficher le résumé des tournées
+        print(f"{'Tournée':<15} | {'Adresses':<10} | {'Début':<8} | {'Fin':<8}")
+        print("-"*50)
+        for row in cursor.fetchall():
+            tournee, total, min_heure, max_heure = row
+            print(f"{tournee:<15} | {total:<10} | {min_heure:<8} | {max_heure:<8}")
+        
+        # Demander si l'utilisateur veut voir le détail d'une tournée
+        choix = input("\nVoulez-vous voir le détail d'une tournée ? (oui/non) ").lower()
+        if choix in ['o', 'oui', 'y', 'yes']:
+            tournee_det = input("Entrez le nom de la tournée : ")
+            afficher_base_de_donnees(tournee_det)
+    
+    conn.close()
+
+if __name__ == "__main__":
+    main()
+    afficher_base_de_donnees(6)
+
+
+    ========================
+
+Je peux aussi t'aider à :
+
+Personnaliser l’apparence.
+
+Le mettre en ligne (Streamlit Cloud ou autre).

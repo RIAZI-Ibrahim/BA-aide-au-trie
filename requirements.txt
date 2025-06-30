@@ -1,0 +1,9 @@
+streamlit
+pandas
+re
+unicodedata
+PIL
+opencv-python-headless
+numpy
+pytesseract
+# autres libs utilisées
