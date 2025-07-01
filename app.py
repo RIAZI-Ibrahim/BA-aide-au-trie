@@ -165,11 +165,11 @@ with col2:
     if 'show_camera' not in st.session_state:
         st.session_state.show_camera = False
 
-    if st.button("📷 Ouvrir la caméra"):
-        st.session_state.show_camera = True
+    """if st.button("📷 Ouvrir la caméra"):
+        st.session_state.show_camera = True"""
 
     if st.session_state.show_camera:
-        if st.button("📸 Ouvrir la caméra arrière pour prendre la photo"):
+        if st.button("📷 Ouvrir la caméra"):
                                         components.html("""
                                         <video id="video" width="100%" autoplay playsinline></video>
                                         <button id="capture">📸 Prendre la photo</button>
