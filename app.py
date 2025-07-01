@@ -141,7 +141,7 @@ st.sidebar.info(f"Vous avez choisi la tournée **{selected_tournee} - {tournee_m
 # =========================================
 # SAISIE OU SCAN
 # =========================================
-st.subheader("📦 Scan de l'adresse")
+st.subheader("📦 Saisie ou Scan de l'adresse")
 col1, col2 = st.columns([2, 1])
 
 #with col1:
