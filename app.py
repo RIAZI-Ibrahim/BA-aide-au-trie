@@ -148,13 +148,23 @@ with col1:
     input_adresse = st.text_input("✍️ Entrez l'adresse manuellement :")
 
 with col2:
-    st.markdown("**📷 Photo directe ou Import**")
+    if 'show_camera' not in st.session_state:
+        st.session_state.show_camera = False
 
-    # Prendre photo en direct
-    photo_capturee = st.camera_input("Prendre une photo")
+    if st.button("📷 Ouvrir la caméra"):
+        st.session_state.show_camera = True
+
+    if st.session_state.show_camera:
+        image_uploaded = st.file_uploader(
+            "📸 Prenez une photo / Importer", 
+            type=['png', 'jpg', 'jpeg'], 
+            label_visibility="collapsed"
+        )
+    else:
+        st.info("Cliquez sur le bouton pour ouvrir la caméra")
 
     # Ou importer depuis la galerie
-    image_upload = st.file_uploader("Ou importer une photo", type=['png', 'jpg', 'jpeg'])
+    image_uploaded = st.file_uploader("📷 Prendre une photo / Importer", type=['png', 'jpg', 'jpeg'], label_visibility="collapsed")
 
 # Priorité : la caméra si utilisée
 image_to_process = photo_capturee if photo_capturee else image_upload
