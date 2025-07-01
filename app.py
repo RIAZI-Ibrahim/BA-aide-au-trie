@@ -141,7 +141,7 @@ st.sidebar.info(f"Vous avez choisi la tournée **{selected_tournee} - {tournee_m
 # =========================================
 # SAISIE OU SCAN
 # =========================================
-st.subheader("📦 Saisie ou Scan de l'adresse")
+st.subheader("📦 Scan de l'adresse")
 col1, col2 = st.columns([2, 1])
 
 #with col1:
@@ -149,7 +149,7 @@ col1, col2 = st.columns([2, 1])
 
 with col2:
     #st.markdown("**📷 Photo directe ou Import**")
-
+    image_uploaded = None
     # Prendre photo en direct
     #photo_capturee = st.camera_input("Prendre une photo")
     if 'show_camera' not in st.session_state:
