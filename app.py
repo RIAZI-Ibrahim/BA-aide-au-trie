@@ -164,10 +164,10 @@ with col2:
         st.info("Cliquez sur le bouton pour ouvrir la caméra")
 
     # Ou importer depuis la galerie
-    image_uploaded = st.file_uploader("📷 Prendre une photo / Importer", type=['png', 'jpg', 'jpeg'], label_visibility="collapsed")
+    #image_uploaded = st.file_uploader("📷 Prendre une photo / Importer", type=['png', 'jpg', 'jpeg'], label_visibility="collapsed")
 
 # Priorité : la caméra si utilisée
-image_to_process = photo_capturee if photo_capturee else image_upload
+image_to_process =  image_uploaded
 
 if image_to_process:
     ocr_result = extraire_texte_image(image_to_process)
