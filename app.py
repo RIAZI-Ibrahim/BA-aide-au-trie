@@ -167,9 +167,12 @@ with col2:
 if image_uploaded:
     ocr_result = extraire_texte_image(image_uploaded)
     if ocr_result:
-        st.success("✅ Adresse détectée sur l’étiquette :")
+        # Ici on extrait seulement la première ligne (ou celle qu'on considère comme adresse)
+        adresse_extraite = ocr_result.split('\n')[0].strip()
+        st.success(f"✅ Adresse détectée sur l’étiquette : {adresse_extraite}")
+        input_ = adresse_extraite
         # Affiche une zone de texte éditable initialisée avec le texte OCR
-        input_adresse = st.text_area("✍️ Corrigez si besoin l'adresse détectée :", value=ocr_result, height=100)
+        input_adresse = st.text_area("✍️ Corrigez si besoin l'adresse détectée :", value=input_, height=100)
     else:
         st.error("❌ Impossible de lire l'adresse sur la photo. Veuillez réessayer.")
 
