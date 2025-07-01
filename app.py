@@ -6,7 +6,6 @@ from PIL import Image
 import numpy as np
 import easyocr
 import pytesseract
-import streamlit.components.v1 as components
 
 # =========================================
 # CONFIG
@@ -162,41 +161,14 @@ with col2:
     image_uploaded = None
     # Prendre photo en direct
     #photo_capturee = st.camera_input("Prendre une photo")
-    """if 'show_camera' not in st.session_state:
-        st.session_state.show_camera = False"""
+    if 'show_camera' not in st.session_state:
+        st.session_state.show_camera = False
 
-    """if st.button("📷 Ouvrir la caméra"):
-        st.session_state.show_camera = True"""
+    if st.button("📷 Ouvrir la caméra"):
+        st.session_state.show_camera = True
 
     if st.session_state.show_camera:
-        if st.button("📷 Ouvrir la caméra"):
-                                        components.html("""
-                                        <video id="video" width="100%" autoplay playsinline></video>
-                                        <button id="capture">📸 Prendre la photo</button>
-                                        <canvas id="canvas" style="display:none;"></canvas>
-                                        <script>
-                                        const video = document.getElementById('video');
-                                        const canvas = document.getElementById('canvas');
-                                        const captureButton = document.getElementById('capture');
-
-                                        navigator.mediaDevices.getUserMedia({
-                                            video: { facingMode: { exact: "environment" } }
-                                        })
-                                        .then(stream => { video.srcObject = stream; })
-                                        .catch(err => {
-                                            console.error(err);
-                                            alert("Impossible d'ouvrir la caméra arrière. Essayez de changer de navigateur ou autorisez l'accès.");
-                                        });
-
-                                        captureButton.onclick = () => {
-                                            canvas.width = video.videoWidth;
-                                            canvas.height = video.videoHeight;
-                                            canvas.getContext('2d').drawImage(video, 0, 0);
-                                            const dataUrl = canvas.toDataURL('image/png');
-                                            window.parent.postMessage({type: 'capture', dataUrl: dataUrl}, '*');
-                                        };
-                                        </script>
-                                        """, height=500)
+        image_uploaded = st.camera_input("Prendre une photo")
     # Ou importer depuis la galerie
     #image_uploaded = st.file_uploader("📷 Prendre une photo / Importer", type=['png', 'jpg', 'jpeg'], label_visibility="collapsed")
 
