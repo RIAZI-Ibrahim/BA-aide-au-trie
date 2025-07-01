@@ -144,11 +144,11 @@ st.sidebar.info(f"Vous avez choisi la tournée **{selected_tournee} - {tournee_m
 st.subheader("📦 Saisie ou Scan de l'adresse")
 col1, col2 = st.columns([2, 1])
 
-with col1:
-    input_adresse = st.text_input("✍️ Entrez l'adresse manuellement :")
+#with col1:
+    #input_adresse = st.text_input("✍️ Entrez l'adresse manuellement :")
 
 with col2:
-    st.markdown("**📷 Photo directe ou Import**")
+    #st.markdown("**📷 Photo directe ou Import**")
 
     # Prendre photo en direct
     #photo_capturee = st.camera_input("Prendre une photo")
@@ -163,11 +163,9 @@ with col2:
     # Ou importer depuis la galerie
     #image_uploaded = st.file_uploader("📷 Prendre une photo / Importer", type=['png', 'jpg', 'jpeg'], label_visibility="collapsed")
 
-# Priorité : la caméra si utilisée
-image_to_process = image_uploaded
 
-if image_to_process:
-    ocr_result = extraire_texte_image(image_to_process)
+if image_uploaded:
+    ocr_result = extraire_texte_image(image_uploaded)
     if ocr_result:
         st.success("✅ Adresse détectée sur l’étiquette :")
         # Affiche une zone de texte éditable initialisée avec le texte OCR
