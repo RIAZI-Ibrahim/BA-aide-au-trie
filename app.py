@@ -79,11 +79,15 @@ def extraire_texte_image(image_file):
         image = image.convert('RGB')
         largeur, hauteur = image.size
         # Découper la zone en haut, par exemple 20% de la hauteur de l’image
-        hauteur_zone = int(hauteur * 0.1)
-        zone_haute = image.crop((0, 0, largeur, hauteur_zone))
-        zone_haute = zone_haute.convert('RGB')
-        # OCR avec EasyOCR
-        results = reader.readtext(np.array(zone_haute), detail=0, paragraph=True)
+        p = .1
+        results = ""
+        while results == "": 
+            hauteur_zone = int(hauteur * p)
+            zone_haute = image.crop((0, 0, largeur, hauteur_zone))
+            zone_haute = zone_haute.convert('RGB')
+            # OCR avec EasyOCR
+            results = reader.readtext(np.array(zone_haute), detail=0, paragraph=True)
+            p += 0.1
         # Concatène tous les résultats
         text = "\n".join(results)
         return text.strip()
