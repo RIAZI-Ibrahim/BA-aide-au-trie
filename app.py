@@ -73,20 +73,21 @@ reader = easyocr.Reader(['fr'], gpu=False)
 
 def extraire_texte_image(image_file):
     try:
+        # Ouvre l'image
         image = Image.open(image_file)
         largeur, hauteur = image.size
         # Découper la zone en haut, par exemple 20% de la hauteur de l’image
         hauteur_zone = int(hauteur * 0.2)
         zone_haute = image.crop((0, 0, largeur, hauteur_zone))
-        
-        # OCR sur la zone découpée
-        text = pytesseract.image_to_string(zone_haute, lang='fra')
-        
-        # On récupère seulement la première ligne (adresse)
-        premiere_ligne = text.strip().split('\n')[0]
-        return premiere_ligne
+        image = zone_haute.convert('RGB')
+        # OCR avec EasyOCR
+        results = reader.readtext(np.array(image), detail=0, paragraph=True)
+        # Concatène tous les résultats
+        text = "\n".join(results)
+        return text.strip()
     except Exception as e:
         return ""
+
 
 def chercher_adresse(adresse, tournee_numero):
     nom_rue = extraire_nom_rue(adresse)
