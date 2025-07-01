@@ -162,8 +162,8 @@ with col2:
     image_uploaded = None
     # Prendre photo en direct
     #photo_capturee = st.camera_input("Prendre une photo")
-    if 'show_camera' not in st.session_state:
-        st.session_state.show_camera = False
+    """if 'show_camera' not in st.session_state:
+        st.session_state.show_camera = False"""
 
     """if st.button("📷 Ouvrir la caméra"):
         st.session_state.show_camera = True"""
