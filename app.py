@@ -98,33 +98,46 @@ reader = easyocr.Reader(['fr'], gpu=False)
 
 
 ##===============================================================
+from paddleocr import PaddleOCR
+from PIL import Image
+import numpy as np
+
+# Initialise PaddleOCR (français)
 ocr = PaddleOCR(use_angle_cls=True, lang='fr')
 
 def extraire_texte_image(image_file):
+    """
+    OCR sur l'image en balayant progressivement la zone haute
+    pour extraire uniquement le texte de l'étiquette.
+    """
     try:
-        # Ouvre l'image
+        # Convertir le fichier Streamlit UploadedFile en image PIL
         image = Image.open(image_file).convert("RGB")
         largeur, hauteur = image.size
-        
-        # On commence avec 10% de la hauteur, puis on augmente
-        p = 0.1
+
+        p = 0.1  # commence par 10% de la hauteur
         results = []
-        while not results and p <= 1:
+
+        while not results and p <= 1.0:
             hauteur_zone = int(hauteur * p)
             zone_haute = image.crop((0, 0, largeur, hauteur_zone))
-            
-            # OCR avec PaddleOCR
-            ocr_result = ocr.ocr(np.array(zone_haute), cls=True)
+            zone_haute_np = np.array(zone_haute)
+
+            # OCR PaddleOCR
+            ocr_result = ocr.ocr(zone_haute_np, cls=True)
             for res in ocr_result[0]:
                 results.append(res[1][0])  # texte reconnu
-            
+
             p += 0.1
 
+        # Concatène les lignes détectées
         text = "\n".join(results)
         return text.strip()
+    
     except Exception as e:
-        print("Erreur OCR:", e)
+        print("Erreur OCR :", e)
         return ""
+
 """def extraire_texte_image(image_file):
     try:
         # Convertir UploadedFile (streamlit) en image PIL
@@ -243,14 +256,15 @@ if image_uploaded:
 if image_uploaded:
     ocr_result = extraire_texte_image(image_uploaded)
     if ocr_result:
+        # On peut filtrer l'adresse avec regex comme avant
         adresse_extraite = extraire_adresse_depuis_text(ocr_result)
         if adresse_extraite:
             st.success(f"✅ Adresse détectée : {adresse_extraite}")
             input_adresse = st.text_area("✍️ Corrigez si besoin :", value=adresse_extraite, height=100)
         else:
-            st.error("❌ Aucun motif d'adresse détecté.")
+            st.error("❌ Aucun motif d'adresse détecté dans l'étiquette.")
     else:
-        st.error("❌ Impossible de lire l'image.")
+        st.error("❌ Impossible de lire le texte sur l'image.")
 ##============================:::::::::::::
 
 # =========================================
