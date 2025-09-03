@@ -7,4 +7,6 @@ pytesseract
 easyocr
 paddleocr
 paddlepaddle>=2.0.0
+opencv-python-headless
+
 # autres libs utilisées
