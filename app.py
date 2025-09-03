@@ -72,7 +72,7 @@ def extraire_nom_rue(adresse):
 
 reader = easyocr.Reader(['fr'], gpu=False)
 
-"""def extraire_texte_image(image_file):
+def extraire_texte_image(image_file):
     try:
         # Ouvre l'image
         image = Image.open(image_file)
@@ -94,9 +94,9 @@ reader = easyocr.Reader(['fr'], gpu=False)
         return text.strip()
     except Exception as e:
         return ""
-"""
+
 ##===============================================================
-def extraire_texte_image(image_file):
+"""def extraire_texte_image(image_file):
     try:
         # Convertir UploadedFile (streamlit) en image PIL
         image = Image.open(BytesIO(image_file.getvalue())).convert("L")
@@ -104,7 +104,7 @@ def extraire_texte_image(image_file):
         return text.strip()
     except Exception as e:
         print("Erreur OCR :", e)  # log en console
-        return ""
+        return """""
 
 def extraire_adresse_depuis_text(ocr_text):
     lignes = ocr_text.split("\n")
