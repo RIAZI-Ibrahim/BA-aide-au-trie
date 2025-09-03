@@ -7,6 +7,7 @@ from PIL import Image
 import numpy as np
 import easyocr
 import pytesseract
+from paddleocr import PaddleOCR
 
 # =========================================
 # CONFIG
@@ -72,7 +73,7 @@ def extraire_nom_rue(adresse):
 
 reader = easyocr.Reader(['fr'], gpu=False)
 
-def extraire_texte_image(image_file):
+""""def extraire_texte_image(image_file):
     try:
         # Ouvre l'image
         image = Image.open(image_file)
@@ -93,9 +94,37 @@ def extraire_texte_image(image_file):
         text = "\n".join(results)
         return text.strip()
     except Exception as e:
-        return ""
+        return """""
+
 
 ##===============================================================
+ocr = PaddleOCR(use_angle_cls=True, lang='fr')
+
+def extraire_texte_image(image_file):
+    try:
+        # Ouvre l'image
+        image = Image.open(image_file).convert("RGB")
+        largeur, hauteur = image.size
+        
+        # On commence avec 10% de la hauteur, puis on augmente
+        p = 0.1
+        results = []
+        while not results and p <= 1:
+            hauteur_zone = int(hauteur * p)
+            zone_haute = image.crop((0, 0, largeur, hauteur_zone))
+            
+            # OCR avec PaddleOCR
+            ocr_result = ocr.ocr(np.array(zone_haute), cls=True)
+            for res in ocr_result[0]:
+                results.append(res[1][0])  # texte reconnu
+            
+            p += 0.1
+
+        text = "\n".join(results)
+        return text.strip()
+    except Exception as e:
+        print("Erreur OCR:", e)
+        return ""
 """def extraire_texte_image(image_file):
     try:
         # Convertir UploadedFile (streamlit) en image PIL

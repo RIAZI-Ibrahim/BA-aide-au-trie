@@ -5,5 +5,5 @@ opencv-python-headless
 numpy
 pytesseract
 easyocr
-
+paddlepaddle>=2.0.0
 # autres libs utilisées
