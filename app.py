@@ -71,7 +71,7 @@ def extraire_nom_rue(adresse):
 
 reader = easyocr.Reader(['fr'], gpu=False)
 
-def extraire_texte_image(image_file):
+"""def extraire_texte_image(image_file):
     try:
         # Ouvre l'image
         image = Image.open(image_file)
@@ -93,7 +93,30 @@ def extraire_texte_image(image_file):
         return text.strip()
     except Exception as e:
         return ""
+"""
+##===============================================================
+def extraire_texte_image(image_file):
+    try:
+        image = Image.open(image_file).convert("L")  # gris
+        text = pytesseract.image_to_string(image, lang="fra")
+        return text.strip()
+    except Exception as e:
+        return ""
 
+def extraire_adresse_depuis_text(ocr_text):
+    lignes = ocr_text.split("\n")
+    adresse_candidates = []
+    for ligne in lignes:
+        ligne_clean = ligne.strip()
+        if re.search(r"\d+\s+.*(rue|avenue|boulevard|chemin|impasse|place|allee|route|quai|cours)", ligne_clean.lower()):
+            adresse_candidates.append(ligne_clean)
+        elif re.search(r"\d{5}\s+[A-Z]", ligne_clean):
+            adresse_candidates.append(ligne_clean)
+    
+    if adresse_candidates:
+        return " ".join(adresse_candidates)
+    return ""
+##===============================================================================
 
 def chercher_adresse(adresse, tournee_numero):
     nom_rue = extraire_nom_rue(adresse)
@@ -172,7 +195,7 @@ with col2:
     # Ou importer depuis la galerie
     #image_uploaded = st.file_uploader("📷 Prendre une photo / Importer", type=['png', 'jpg', 'jpeg'], label_visibility="collapsed")
 
-
+"""
 if image_uploaded:
     ocr_result = extraire_texte_image(image_uploaded)
     if ocr_result:
@@ -183,7 +206,20 @@ if image_uploaded:
         input_adresse = st.text_area("✍️ Corrigez si besoin l'adresse détectée :", value=adresse_extraite, height=100)
     else:
         st.error("❌ Impossible de lire l'adresse sur la photo. Veuillez réessayer.")
-
+"""
+##===========================:::::::::
+if image_uploaded:
+    ocr_result = extraire_texte_image(image_uploaded)
+    if ocr_result:
+        adresse_extraite = extraire_adresse_depuis_text(ocr_result)
+        if adresse_extraite:
+            st.success(f"✅ Adresse détectée : {adresse_extraite}")
+            input_adresse = st.text_area("✍️ Corrigez si besoin :", value=adresse_extraite, height=100)
+        else:
+            st.error("❌ Aucun motif d'adresse détecté.")
+    else:
+        st.error("❌ Impossible de lire l'image.")
+##============================:::::::::::::
 
 # =========================================
 # AJOUTER L'ADRESSE
