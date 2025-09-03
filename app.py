@@ -97,10 +97,12 @@ reader = easyocr.Reader(['fr'], gpu=False)
 ##===============================================================
 def extraire_texte_image(image_file):
     try:
-        image = Image.open(image_file).convert("L")  # gris
-        text = pytesseract.image_to_string(image, lang="fra")
+        # Convertir UploadedFile (streamlit) en image PIL
+        image = Image.open(BytesIO(image_file.getvalue())).convert("L")
+        text = pytesseract.image_to_string(image, lang="fra", config="--psm 6")
         return text.strip()
     except Exception as e:
+        print("Erreur OCR :", e)  # log en console
         return ""
 
 def extraire_adresse_depuis_text(ocr_text):
